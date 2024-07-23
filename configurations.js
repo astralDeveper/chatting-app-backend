@@ -6,7 +6,7 @@ const configurations = {
     url: "",
   },
   db_uri: "",
-  port: 3000,
+  port: process.env.PORT || 3000,
   jwt_secret: process.env.JWT_SECRET,
   db_string: process.env.MONGODB_URI,
   cloudinary_config:{
