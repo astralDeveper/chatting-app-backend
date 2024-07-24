@@ -10,7 +10,7 @@ route.post("/login", AdminLogin);
 
 route.get("/get-users", verifyAdminToken, GetUsers);
 route.get("/get-user/:id", verifyAdminToken, GetUserById);
-route.put("/block-user/:id", verifyAdminToken, BlockUser);
+route.put("/block-user/:id",  BlockUser);
 
 
 

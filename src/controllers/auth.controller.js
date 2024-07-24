@@ -219,14 +219,37 @@ const GetConversations = async (req, res) => {
   }
 };
 
+const requestProfileVisibility = async (req, res) => {
+  try {
+    const { targetUserId } = req.params; // ID of the user whose profile visibility is being requested
+    const requestingUserId = req.user._id; // ID of the user making the request
+
+    // Find the target user and update the isprofileshown array
+    const updatedUser = await User.findByIdAndUpdate(
+      targetUserId,
+      { $addToSet: { isprofileshown: requestingUserId } },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'Target user not found', status: false });
+    }
+
+    return res.status(200).json({ message: 'Profile visibility request accepted', user: updatedUser, status: true });
+  } catch (error) {
+    return res.status(500).json({ message: error.message, status: false });
+  }
+};
+
 module.exports = {
   Login,
   SignUp,
   CreateProfile,
-  AddInterests,
+  AddInterests,   
   UpdateProfile,
   GetProfile,
   GetConversation,
   GetConversations,
-  blockOrUnblockUser
+  blockOrUnblockUser,
+  requestProfileVisibility
 };

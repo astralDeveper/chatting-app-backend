@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema(
       path: { type: String },
       filename: { type: String },
       mimetype: { type: String },
+      
     },
     address: {
       type: String,
@@ -56,6 +57,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isprofileshown: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   {
     timestamps: true,

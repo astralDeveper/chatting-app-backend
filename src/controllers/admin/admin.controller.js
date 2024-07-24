@@ -107,16 +107,17 @@ const CreateAdmin = async (req, res) => {
 const BlockUser = async (req, res) => {
   try {
     let { id } = req.params;
+    console.log(id);
     let user = await User.findOne({ type: configurations.user_type.user, _id: id });
 
-    if (!user.isBlocked) {
-      user.isBlocked = true;
+    if (!user.blocked) {
+      user.blocked = true;
       await user.save();
       return res
         .status(200)
         .json({ status: true, message: "User Blocked Successfully.", });
     } else {
-      user.isBlocked = false;
+      user.blocked = false;
       await user.save();
       return res
         .status(200)
