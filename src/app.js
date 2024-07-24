@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
+const adminRoute = require("./routes/admin.route.js");
 
 // routes 
 const authRoute = require("./routes/auth.route.js");
@@ -19,6 +20,7 @@ app.use(morgan("dev"));
 app.get("/test",(req,res)=>{
     return res.status(200).json({msg:"test hello!"})
 });
+app.use("/admin-route", adminRoute);
 
 app.use("/auth", authRoute);
 app.use("/friend-ship", friendShipRoute);

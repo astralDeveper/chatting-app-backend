@@ -5,11 +5,16 @@ const userSchema = new mongoose.Schema(
     displayName: {
       type: String,
     },
+    type: {
+      type: String,
+      enum: ['user', 'admin', 'super-admin'],
+      default: 'user'
+    },
     realName: {
       type: String,
     },
-    genderInterest:{
-      type:String,
+    genderInterest: {
+      type: String,
     },
     gender: {
       type: String,
@@ -20,20 +25,22 @@ const userSchema = new mongoose.Schema(
     age: {
       type: String,
     },
+    blocked: {
+      type: Boolean,
+      default: false,
+    },
     image: {
       path: { type: String },
       filename: { type: String },
-      mimetype: { type: String }
+      mimetype: { type: String },
     },
     address: {
-      type: String
+      type: String,
     },
     phone: {
-      type: String
+      type: String,
     },
-    interests: [
-      String,
-    ],
+    interests: [String],
     name: {
       type: String,
       trim: true,

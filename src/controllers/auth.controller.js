@@ -150,6 +150,29 @@ const UpdateProfile = async (req, res) => {
   }
 };
 
+
+const blockOrUnblockUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { block } = req.body;  // Expecting { "block": true } or { "block": false } in the request body
+
+    if (typeof block !== 'boolean') {
+      return res.status(400).json({ message: "Invalid 'block' value", status: false });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, { blocked: block }, { new: true }).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found', status: false });
+    }
+
+    const message = block ? 'User blocked successfully.' : 'User unblocked successfully.';
+    return res.status(200).json({ user: updatedUser, message, status: true });
+  } catch (error) {
+    return res.status(500).json({ message: error.message, status: false });
+  }
+};
+
 const GetProfile = async (req, res) => {
   try {
     let auth = req.user;
@@ -201,5 +224,6 @@ module.exports = {
   UpdateProfile,
   GetProfile,
   GetConversation,
-  GetConversations
+  GetConversations,
+  blockOrUnblockUser
 };

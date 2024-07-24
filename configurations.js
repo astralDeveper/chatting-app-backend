@@ -13,6 +13,16 @@ const configurations = {
     cloud_name: process.env.CLOUDNAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
+  },
+  role:{
+    super_admin:"1",
+    admin: '2',
+    user: '3'
+  },
+  user_type:{
+    super_admin: 'super-admin',
+    admin: 'admin',
+    user: 'user'
   }
 };
 
