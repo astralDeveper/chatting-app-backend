@@ -255,7 +255,7 @@ const sendProfileViewRequest = (io) => async (req, res) => {
 };
 
 
-const acceptProfileViewRequest = async (req, res) => {
+const acceptProfileViewRequest = (io) => async (req, res) => {
   try {
     const { targetUserId } = req.params;
     const { requesterId } = req.body; // ID of the user who requested to view the profile
@@ -280,6 +280,15 @@ const acceptProfileViewRequest = async (req, res) => {
     targetUser.profileViewRequests = targetUser.profileViewRequests.filter(id => id.toString() !== requesterId);
 
     await targetUser.save();
+
+    // Emit a Socket.IO event to notify the requester
+    const recipient = await getOnlineReceipt({ userId: requesterId });
+    if (recipient) {
+      io.to(recipient.socketId).emit('profile-view-request-accepted', {
+        message: 'Your profile view request has been accepted',
+        from: targetUserId,
+      });
+    }
 
     return res.status(200).json({ message: 'Profile view request accepted', status: true });
   } catch (error) {

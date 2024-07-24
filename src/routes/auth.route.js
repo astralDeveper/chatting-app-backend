@@ -20,5 +20,5 @@ route.put('/block/:userId', verifyToken,blockOrUnblockUser);
 route.post('/profile-view-request/:targetUserId', sendProfileViewRequest(io));
 
 // Route to accept profile view request
-route.put('/accept-profile-view-request/:targetUserId', verifyToken, acceptProfileViewRequest);
+route.post('/profile-view-request/accept/:targetUserId', acceptProfileViewRequest(io));
 module.exports = route;
