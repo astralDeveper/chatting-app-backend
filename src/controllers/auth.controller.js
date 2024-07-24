@@ -5,6 +5,8 @@ const configurations = require("../../configurations.js");
 const { cloudinary } = require("../utlis/fileUploder.js");
 const Conversation = require("../models/Conversation.js");
 
+const socketServer = require('../socket/index.js');
+
 const Login = async (req, res) => {
   try {
     let { email, password } = req.body;
@@ -220,12 +222,12 @@ const GetConversations = async (req, res) => {
 };
 
 
-const sendProfileViewRequest = async (req, res) => {
+const sendProfileViewRequest = (io) => async (req, res) => {
   try {
     const { targetUserId } = req.params;
     const requestingUserId = req.user._id;
 
-    // Find the target user and add the requesting user's ID to the profileViewRequests array
+    // Find the target user
     const targetUser = await User.findById(targetUserId);
     if (!targetUser) {
       return res.status(404).json({ message: 'Target user not found', status: false });
@@ -237,11 +239,21 @@ const sendProfileViewRequest = async (req, res) => {
       await targetUser.save();
     }
 
+    // Emit a Socket.IO event to notify the target user
+    const recipient = await getOnlineReceipt({ userId: targetUserId });
+    if (recipient) {
+      io.to(recipient.socketId).emit('profile-view-request', {
+        message: 'You have a new profile view request',
+        from: requestingUserId,
+      });
+    }
+
     return res.status(200).json({ message: 'Profile view request sent', status: true });
   } catch (error) {
     return res.status(500).json({ message: error.message, status: false });
   }
 };
+
 
 const acceptProfileViewRequest = async (req, res) => {
   try {
@@ -274,6 +286,7 @@ const acceptProfileViewRequest = async (req, res) => {
     return res.status(500).json({ message: error.message, status: false });
   }
 };
+
 
 
 module.exports = {
