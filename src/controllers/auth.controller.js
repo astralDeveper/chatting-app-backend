@@ -11,36 +11,39 @@ const Login = async (req, res) => {
     if (!email?.trim()?.length || !password?.trim()?.length) {
       return res
         .status(400)
-        .json({ message: "Bad request! all fields are required." });
+        .json({ message: "Bad request! All fields are required." });
     }
 
     let user = await User.findOne({ email });
     if (!user) {
       return res
         .status(404)
-        .json({ message: "User not found with this email! ." });
+        .json({ message: "User not found with this email!." });
+    }
+
+    if (user.blocked) {
+      return res
+        .status(403)
+        .json({ message: "Your account is blocked. Please contact support." });
     }
 
     let matchPassword = await bcrypt.compare(password, user.password);
-
     if (!matchPassword) {
       return res
         .status(405)
-        .json({ message: "Incorrect email or password! ." });
+        .json({ message: "Incorrect email or password!." });
     }
 
     let userData = await User.findById(user._id).select(["-password"]);
-
-    let token = JWT.sign({ _id: user._id }, configurations.jwt_secret);
+    let token = JWT.sign({ _id: user._id }, configurations.jwt_secret, { expiresIn: '1h' });
 
     return res
       .status(200)
-      .json({ message: "Login successfull.", user: userData, token });
+      .json({ message: "Login successful.", user: userData, token });
   } catch (error) {
-    return res.status(500).json({ msg: error?.message, status: false });
+    return res.status(500).json({ message: error?.message, status: false });
   }
 };
-
 const SignUp = async (req, res) => {
   try {
     let { name, email, password } = req.body;

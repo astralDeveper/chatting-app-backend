@@ -129,7 +129,7 @@ const BlockUser = async (req, res) => {
 
 const GetUsers = async (req, res) => {
   try {
-    let users = await User.find({ type: configurations.user_type.user }).select(['_id', 'name', 'username', 'image', 'email', 'isBlocked', 'plan']);
+    let users = await User.find({ type: configurations.user_type.user }).select(['_id', 'name', 'username', 'image', 'email', 'blocked', 'plan']);
     return res.status(200).json({ users, status: true });
   } catch (error) {
     return res.status(500).json({ message: error?.message, status: false });
