@@ -52,7 +52,7 @@ const AdminLogin = async (req, res) => {
         .json({ message: "Incorrect email or password! .", status: false });
     }
 
-    let userData = await User.findById(user._id).select(["_id", "email", "name", "username", "image "]);
+    let userData = await User.findById(user._id).select(["_id", "email", "name", "username", "image ","type"]);
 
     let token = JWT.sign({ _id: user._id }, configurations.jwt_secret);
 
