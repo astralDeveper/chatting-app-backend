@@ -219,27 +219,62 @@ const GetConversations = async (req, res) => {
   }
 };
 
-const requestProfileVisibility = async (req, res) => {
+
+const sendProfileViewRequest = async (req, res) => {
   try {
-    const { targetUserId } = req.params; // ID of the user whose profile visibility is being requested
-    const requestingUserId = req.user._id; // ID of the user making the request
+    const { targetUserId } = req.params;
+    const requestingUserId = req.user._id;
 
-    // Find the target user and update the isprofileshown array
-    const updatedUser = await User.findByIdAndUpdate(
-      targetUserId,
-      { $addToSet: { isprofileshown: requestingUserId } },
-      { new: true }
-    ).select('-password');
-
-    if (!updatedUser) {
+    // Find the target user and add the requesting user's ID to the profileViewRequests array
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
       return res.status(404).json({ message: 'Target user not found', status: false });
     }
 
-    return res.status(200).json({ message: 'Profile visibility request accepted', user: updatedUser, status: true });
+    // Add requestingUserId to profileViewRequests array if not already present
+    if (!targetUser.profileViewRequests.includes(requestingUserId)) {
+      targetUser.profileViewRequests.push(requestingUserId);
+      await targetUser.save();
+    }
+
+    return res.status(200).json({ message: 'Profile view request sent', status: true });
   } catch (error) {
     return res.status(500).json({ message: error.message, status: false });
   }
 };
+
+const acceptProfileViewRequest = async (req, res) => {
+  try {
+    const { targetUserId } = req.params;
+    const { requesterId } = req.body; // ID of the user who requested to view the profile
+
+    // Find the target user
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ message: 'Target user not found', status: false });
+    }
+
+    // Check if the requesterId is in the profileViewRequests array
+    if (!targetUser.profileViewRequests.includes(requesterId)) {
+      return res.status(400).json({ message: 'Request not found', status: false });
+    }
+
+    // Add requesterId to isprofileshown array
+    if (!targetUser.isprofileshown.includes(requesterId)) {
+      targetUser.isprofileshown.push(requesterId);
+    }
+
+    // Remove requesterId from profileViewRequests array
+    targetUser.profileViewRequests = targetUser.profileViewRequests.filter(id => id.toString() !== requesterId);
+
+    await targetUser.save();
+
+    return res.status(200).json({ message: 'Profile view request accepted', status: true });
+  } catch (error) {
+    return res.status(500).json({ message: error.message, status: false });
+  }
+};
+
 
 module.exports = {
   Login,
@@ -251,5 +286,6 @@ module.exports = {
   GetConversation,
   GetConversations,
   blockOrUnblockUser,
-  requestProfileVisibility
+  sendProfileViewRequest,
+  acceptProfileViewRequest
 };

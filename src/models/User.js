@@ -58,6 +58,8 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     isprofileshown: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
+    profileViewRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   {
     timestamps: true,

@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Login, SignUp, CreateProfile, AddInterests, UpdateProfile, GetProfile, GetConversation, GetConversations, blockOrUnblockUser, requestProfileVisibility } = require("../controllers/auth.controller.js");
+const { Login, SignUp, CreateProfile, AddInterests, UpdateProfile, GetProfile, GetConversation, GetConversations, blockOrUnblockUser, requestProfileVisibility, sendProfileViewRequest, acceptProfileViewRequest } = require("../controllers/auth.controller.js");
 const { verifyToken } = require("../utlis/auth.js");
 const { ProfileImageUploader } = require("../utlis/fileUploder.js");
 
@@ -14,5 +14,10 @@ route.get("/get-profile", verifyToken, GetProfile);
 route.get("/get-conversation/:id", verifyToken, GetConversation);
 route.get("/get-conversations", verifyToken, GetConversations);
 route.put('/block/:userId', verifyToken,blockOrUnblockUser);
-router.put('/request-profile-visibility/:targetUserId', requestProfileVisibility);
+
+// Route to send profile view request
+route.put('/send-profile-view-request/:targetUserId', verifyToken, sendProfileViewRequest);
+
+// Route to accept profile view request
+route.put('/accept-profile-view-request/:targetUserId', verifyToken, acceptProfileViewRequest);
 module.exports = route;
