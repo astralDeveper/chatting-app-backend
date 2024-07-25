@@ -205,6 +205,7 @@ const GetConversation = async (req, res) => {
     return res.status(500).json({ message: error?.message, status: false });
   }
 };
+
 const GetConversations = async (req, res) => {
   try {
     let auth = req.user;
