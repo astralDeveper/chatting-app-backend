@@ -5,7 +5,7 @@ const configurations = require("../../configurations.js");
 const { cloudinary } = require("../utlis/fileUploder.js");
 const Conversation = require("../models/Conversation.js");
 
-const io = require("../socket/index.js");
+const socketServer = require("../socket/index.js");
 const { getOnlineReceipt } = require("../socket/socketFunctions.js");
 
 const Login = async (req, res) => {
@@ -231,16 +231,20 @@ const GetConversations = async (req, res) => {
 
 const sendProfileViewRequest = (io) => async (req, res) => {
   try {
+    console.log('Request Body:', req.body);
+    console.log('Request Params:', req.params);
+
     const { targetUserId } = req.params;
-    console.log(targetUserId);
     const requestingUserId = req.body.userid;
+
+    if (!targetUserId || !requestingUserId) {
+      return res.status(400).json({ message: "Missing required parameters", status: false });
+    }
 
     // Find the target user
     const targetUser = await User.findById(targetUserId);
     if (!targetUser) {
-      return res
-        .status(404)
-        .json({ message: "Target user not found", status: false });
+      return res.status(404).json({ message: "Target user not found", status: false });
     }
 
     // Add requestingUserId to profileViewRequests array if not already present
@@ -258,19 +262,23 @@ const sendProfileViewRequest = (io) => async (req, res) => {
       });
     }
 
-    return res
-      .status(200)
-      .json({ message: "Profile view request sent", status: true });
+    return res.status(200).json({ message: "Profile view request sent", status: true });
   } catch (error) {
+    console.error('Error:', error.message);
     return res.status(500).json({ message: error.message, status: false });
   }
 };
 
+
+
 const acceptProfileViewRequest = (io) => async (req, res) => {
   try {
     const { targetUserId } = req.params;
-    const { requesterId } = req.body; // ID of the user who requested to view the profile
-
+    const  requesterId  = req.body.userid; 
+    console.log(requesterId);// ID of the user who requested to view the profile
+    if (!targetUserId || !requesterId) {
+      return res.status(400).json({ message: "Missing required parameters", status: false });
+    }
     // Find the target user
     const targetUser = await User.findById(targetUserId);
     if (!targetUser) {

@@ -1,10 +1,5 @@
 const socketMiddleware = require("../utlis/socketMiddleware.js");
-const {
-  setUserOnline,
-  setUserOffline,
-  getOnlineReceipt,
-  insertChat,
-} = require("./socketFunctions.js");
+const { setUserOnline, setUserOffline, getOnlineReceipt, insertChat } = require("./socketFunctions.js");
 const User = require("../models/User.js"); // Ensure you have this model imported
 
 const socketServer = (io) => {
@@ -23,9 +18,7 @@ const socketServer = (io) => {
 
     socket.on("send-message", async (data) => {
       let message = await insertChat(data);
-
       let receipt = await getOnlineReceipt({ userId: data?.to });
-
       let sender = await getOnlineReceipt({ userId: data?.from });
 
       if (receipt) {
@@ -40,18 +33,15 @@ const socketServer = (io) => {
       try {
         const { fromUserId, toUserId } = data;
 
-        // Find the target user
         const targetUser = await User.findById(toUserId);
         if (!targetUser) {
           return socket.emit("error", { message: "Target user not found" });
         }
 
-        // Add the requesting user's ID to the profileViewRequests array if not already present
         if (!targetUser.profileViewRequests.includes(fromUserId)) {
           targetUser.profileViewRequests.push(fromUserId);
           await targetUser.save();
 
-          // Emit an event to notify the target user
           const recipient = await getOnlineReceipt({ userId: toUserId });
           if (recipient) {
             io.to(recipient.socketId).emit("profile-view-request", {
