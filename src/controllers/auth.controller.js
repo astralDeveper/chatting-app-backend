@@ -5,7 +5,7 @@ const configurations = require("../../configurations.js");
 const { cloudinary } = require("../utlis/fileUploder.js");
 const Conversation = require("../models/Conversation.js");
 
-const socketServer = require('../socket/index.js');
+const socketServer = require("../socket/index.js");
 
 const Login = async (req, res) => {
   try {
@@ -31,13 +31,13 @@ const Login = async (req, res) => {
 
     let matchPassword = await bcrypt.compare(password, user.password);
     if (!matchPassword) {
-      return res
-        .status(405)
-        .json({ message: "Incorrect email or password!." });
+      return res.status(405).json({ message: "Incorrect email or password!." });
     }
 
     let userData = await User.findById(user._id).select(["-password"]);
-    let token = JWT.sign({ _id: user._id }, configurations.jwt_secret, { expiresIn: '1h' });
+    let token = JWT.sign({ _id: user._id }, configurations.jwt_secret, {
+      expiresIn: "1h",
+    });
 
     return res
       .status(200)
@@ -155,23 +155,30 @@ const UpdateProfile = async (req, res) => {
   }
 };
 
-
 const blockOrUnblockUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { block } = req.body;  // Expecting { "block": true } or { "block": false } in the request body
+    const { block } = req.body; // Expecting { "block": true } or { "block": false } in the request body
 
-    if (typeof block !== 'boolean') {
-      return res.status(400).json({ message: "Invalid 'block' value", status: false });
+    if (typeof block !== "boolean") {
+      return res
+        .status(400)
+        .json({ message: "Invalid 'block' value", status: false });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, { blocked: block }, { new: true }).select('-password');
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { blocked: block },
+      { new: true }
+    ).select("-password");
 
     if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found', status: false });
+      return res.status(404).json({ message: "User not found", status: false });
     }
 
-    const message = block ? 'User blocked successfully.' : 'User unblocked successfully.';
+    const message = block
+      ? "User blocked successfully."
+      : "User unblocked successfully.";
     return res.status(200).json({ user: updatedUser, message, status: true });
   } catch (error) {
     return res.status(500).json({ message: error.message, status: false });
@@ -193,8 +200,10 @@ const GetConversation = async (req, res) => {
     let auth = req.user;
     let { id } = req.params;
 
-    if(!id){
-      return res.status(400).json({message:"Id is required.", status:false});
+    if (!id) {
+      return res
+        .status(400)
+        .json({ message: "Id is required.", status: false });
     }
 
     let conversation = await Conversation.findOne({
@@ -209,19 +218,15 @@ const GetConversation = async (req, res) => {
 const GetConversations = async (req, res) => {
   try {
     let auth = req.user;
-   
 
     let conversations = await Conversation.find({
       participants: { $all: [auth?._id] },
-    }).populate({path:"participants",
-      select:" name _id image"
-    })
+    }).populate({ path: "participants", select: " name _id image" });
     return res.status(200).json({ conversations, status: false });
   } catch (error) {
     return res.status(500).json({ message: error?.message, status: false });
   }
 };
-
 
 const sendProfileViewRequest = (io) => async (req, res) => {
   try {
@@ -231,7 +236,9 @@ const sendProfileViewRequest = (io) => async (req, res) => {
     // Find the target user
     const targetUser = await User.findById(targetUserId);
     if (!targetUser) {
-      return res.status(404).json({ message: 'Target user not found', status: false });
+      return res
+        .status(404)
+        .json({ message: "Target user not found", status: false });
     }
 
     // Add requestingUserId to profileViewRequests array if not already present
@@ -243,18 +250,19 @@ const sendProfileViewRequest = (io) => async (req, res) => {
     // Emit a Socket.IO event to notify the target user
     const recipient = await getOnlineReceipt({ userId: targetUserId });
     if (recipient) {
-      io.to(recipient.socketId).emit('profile-view-request', {
-        message: 'You have a new profile view request',
+      io.to(recipient.socketId).emit("profile-view-request", {
+        message: "You have a new profile view request",
         from: requestingUserId,
       });
     }
 
-    return res.status(200).json({ message: 'Profile view request sent', status: true });
+    return res
+      .status(200)
+      .json({ message: "Profile view request sent", status: true });
   } catch (error) {
     return res.status(500).json({ message: error.message, status: false });
   }
 };
-
 
 const acceptProfileViewRequest = (io) => async (req, res) => {
   try {
@@ -264,12 +272,16 @@ const acceptProfileViewRequest = (io) => async (req, res) => {
     // Find the target user
     const targetUser = await User.findById(targetUserId);
     if (!targetUser) {
-      return res.status(404).json({ message: 'Target user not found', status: false });
+      return res
+        .status(404)
+        .json({ message: "Target user not found", status: false });
     }
 
     // Check if the requesterId is in the profileViewRequests array
     if (!targetUser.profileViewRequests.includes(requesterId)) {
-      return res.status(400).json({ message: 'Request not found', status: false });
+      return res
+        .status(400)
+        .json({ message: "Request not found", status: false });
     }
 
     // Add requesterId to isprofileshown array
@@ -278,37 +290,39 @@ const acceptProfileViewRequest = (io) => async (req, res) => {
     }
 
     // Remove requesterId from profileViewRequests array
-    targetUser.profileViewRequests = targetUser.profileViewRequests.filter(id => id.toString() !== requesterId);
+    targetUser.profileViewRequests = targetUser.profileViewRequests.filter(
+      (id) => id.toString() !== requesterId
+    );
 
     await targetUser.save();
 
     // Emit a Socket.IO event to notify the requester
     const recipient = await getOnlineReceipt({ userId: requesterId });
     if (recipient) {
-      io.to(recipient.socketId).emit('profile-view-request-accepted', {
-        message: 'Your profile view request has been accepted',
+      io.to(recipient.socketId).emit("profile-view-request-accepted", {
+        message: "Your profile view request has been accepted",
         from: targetUserId,
       });
     }
 
-    return res.status(200).json({ message: 'Profile view request accepted', status: true });
+    return res
+      .status(200)
+      .json({ message: "Profile view request accepted", status: true });
   } catch (error) {
     return res.status(500).json({ message: error.message, status: false });
   }
 };
 
-
-
 module.exports = {
   Login,
   SignUp,
   CreateProfile,
-  AddInterests,   
+  AddInterests,
   UpdateProfile,
   GetProfile,
   GetConversation,
   GetConversations,
   blockOrUnblockUser,
   sendProfileViewRequest,
-  acceptProfileViewRequest
+  acceptProfileViewRequest,
 };
