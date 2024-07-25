@@ -231,7 +231,7 @@ const GetConversations = async (req, res) => {
 const sendProfileViewRequest = (io) => async (req, res) => {
   try {
     const { targetUserId } = req.params;
-    const requestingUserId = req.dody.userid;
+    const requestingUserId = req.body.userid;
 
     // Find the target user
     const targetUser = await User.findById(targetUserId);
