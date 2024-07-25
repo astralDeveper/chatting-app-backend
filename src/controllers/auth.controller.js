@@ -5,7 +5,8 @@ const configurations = require("../../configurations.js");
 const { cloudinary } = require("../utlis/fileUploder.js");
 const Conversation = require("../models/Conversation.js");
 
-const socketServer = require("../socket/index.js");
+const io = require("../socket/index.js");
+const { getOnlineReceipt } = require("../socket/socketFunctions.js");
 
 const Login = async (req, res) => {
   try {
@@ -231,6 +232,7 @@ const GetConversations = async (req, res) => {
 const sendProfileViewRequest = (io) => async (req, res) => {
   try {
     const { targetUserId } = req.params;
+    console.log(targetUserId);
     const requestingUserId = req.body.userid;
 
     // Find the target user
