@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     isprofileshown: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-
+    profileVisible: { type: Boolean, default: false },
     profileViewRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     chatHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }]
   },
