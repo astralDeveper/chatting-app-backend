@@ -196,28 +196,22 @@ const GetProfile = async (req, res) => {
   }
 };
 const getProfileByUid = async (req, res) => {
-    try {
-      console.log(req.body);
-      const uidParam = req.body.id;
-  
-      if (!uidParam) {
-        return res.status(400).json({ error: "Invalid or missing uid parameter" });
-      }
-  
-      const uids = uidParam.split(",").map((id) => id.trim());
-  
-      const profiles = await User.find({ _id: { $in: uids } });
-  
-      if (!profiles.length) {
-        return res.json({ error: "Profiles not found" });
-      }
-  
-      res.json({ message: "Profiles found", data: profiles });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: err.message });
+  try {
+    const uidParam = req.body.id;
+
+    if (!uidParam) {
+      return res.status(400).json({ error: "Invalid or missing id in body" });
     }
-  };
+
+    const myuser = await User.findById(uidParam)
+    const users = await User.find({ '_id': { $in: myuser.profileViewRequests } }).select('displayName _id');
+
+    res.json({ message: "Profiles found", data: users });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: err.message });
+  }
+};
 
 
 const GetConversation = async (req, res) => {
@@ -338,35 +332,49 @@ const requestProfileView = async (req, res) => {
   }
 };
 
-const acceptProfileViewRequest = (io) => async (req, res) => {
+
+const acceptProfileViewRequest = async (req, res) => {
   try {
-    const { targetUserId } = req.params;
-    const requesterId = req.body.userid;
-    console.log(requesterId); // ID of the user who requested to view the profile
+    const { userid: requesterId, targetUserId } = req.body;
+    console.log("first", requesterId, targetUserId)
+
     if (!targetUserId || !requesterId) {
       return res
         .status(400)
         .json({ message: "Missing required parameters", status: false });
-    }
-    // Find the target user
-    const targetUser = await User.findById(targetUserId);
-    if (!targetUser) {
+    };
+
+    const myUser = await User.findById(requesterId);
+    if (!myUser) {
       return res
         .status(404)
-        .json({ message: "Target user not found", status: false });
-    }
+        .json({ message: "Requested user is not found", status: false });
+    };
 
     // Check if the requesterId is in the profileViewRequests array
-    if (!targetUser.profileViewRequests.includes(requesterId)) {
+    if (!myUser.profileViewRequests.includes(targetUserId)) {
       return res
         .status(400)
         .json({ message: "Request not found", status: false });
-    }
+    };
 
     // Add requesterId to isprofileshown array
+    if (!myUser.isprofileshown.includes(targetUserId)) {
+      myUser.isprofileshown.push(targetUserId);
+    };
+
+    // Remove requesterId from profileViewRequests array
+    myUser.profileViewRequests = myUser.profileViewRequests.filter(
+      (id) => id.toString() !== targetUserId
+    );
+
+    await myUser.save();
+
+    const targetUser = await User.findById(targetUserId);
+
     if (!targetUser.isprofileshown.includes(requesterId)) {
       targetUser.isprofileshown.push(requesterId);
-    }
+    };
 
     // Remove requesterId from profileViewRequests array
     targetUser.profileViewRequests = targetUser.profileViewRequests.filter(
@@ -375,18 +383,9 @@ const acceptProfileViewRequest = (io) => async (req, res) => {
 
     await targetUser.save();
 
-    // Emit a Socket.IO event to notify the requester
-    const recipient = await getOnlineReceipt({ userId: requesterId });
-    if (recipient) {
-      io.to(recipient.socketId).emit("profile-view-request-accepted", {
-        message: "Your profile view request has been accepted",
-        from: targetUserId,
-      });
-    }
-
     return res
       .status(200)
-      .json({ message: "Profile view request accepted", status: true });
+      .json({ message: "Profile view request accepted", user: myUser, status: true });
   } catch (error) {
     return res.status(500).json({ message: error.message, status: false });
   }
@@ -396,6 +395,7 @@ const acceptProfileViewRequest = (io) => async (req, res) => {
 const grantProfileView = async (req, res) => {
   try {
     const { userId, requesterId } = req.body;
+
     const user = await User.findById(userId);
     if (user.profileViewRequests.includes(requesterId)) {
       user.profileVisible = true;
@@ -408,6 +408,17 @@ const grantProfileView = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+const otherProfile = async (req, res) => {
+  try {
+    let { id } = req.body;
+    let user = await User.findById(id).select(["-password"]);
+    return res.status(200).json({ user, status: false });
+  } catch (error) {
+    return res.status(500).json({ message: error?.message, status: false });
+  }
+};
+
 module.exports = {
   Login,
   SignUp,
@@ -423,5 +434,6 @@ module.exports = {
   DeleteRecentChat,
   getProfileByUid,
   requestProfileView,
-  grantProfileView
+  grantProfileView,
+  otherProfile
 };
