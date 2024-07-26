@@ -60,6 +60,7 @@ const userSchema = new mongoose.Schema(
     isprofileshown: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 
     profileViewRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    chatHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }]
   },
   {
     timestamps: true,

@@ -326,6 +326,18 @@ const sendProfileViewRequest = (io) => async (req, res) => {
   }
 };
 
+const requestProfileView = async (req, res) => {
+  try {
+    const { userId, targetUserId } = req.body;
+    const targetUser = await User.findById(targetUserId);
+    targetUser.profileViewRequests.push(userId);
+    await targetUser.save();
+    res.status(200).json({ message: 'Profile view requested' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const acceptProfileViewRequest = (io) => async (req, res) => {
   try {
     const { targetUserId } = req.params;
@@ -380,6 +392,22 @@ const acceptProfileViewRequest = (io) => async (req, res) => {
   }
 };
 
+
+const grantProfileView = async (req, res) => {
+  try {
+    const { userId, requesterId } = req.body;
+    const user = await User.findById(userId);
+    if (user.profileViewRequests.includes(requesterId)) {
+      user.profileVisible = true;
+      await user.save();
+      res.status(200).json({ message: 'Profile view granted' });
+    } else {
+      res.status(400).json({ message: 'No such request found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 module.exports = {
   Login,
   SignUp,
@@ -394,4 +422,6 @@ module.exports = {
   acceptProfileViewRequest,
   DeleteRecentChat,
   getProfileByUid,
+  requestProfileView,
+  grantProfileView
 };
