@@ -195,6 +195,30 @@ const GetProfile = async (req, res) => {
     return res.status(500).json({ message: error?.message, status: false });
   }
 };
+const getProfileByUid = async (req, res) => {
+    try {
+      console.log(req.body);
+      const uidParam = req.body.id;
+  
+      if (!uidParam) {
+        return res.status(400).json({ error: "Invalid or missing uid parameter" });
+      }
+  
+      const uids = uidParam.split(",").map((id) => id.trim());
+  
+      const profiles = await User.find({ _id: { $in: uids } });
+  
+      if (!profiles.length) {
+        return res.json({ error: "Profiles not found" });
+      }
+  
+      res.json({ message: "Profiles found", data: profiles });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: err.message });
+    }
+  };
+
 
 const GetConversation = async (req, res) => {
   try {
@@ -215,7 +239,34 @@ const GetConversation = async (req, res) => {
     return res.status(500).json({ message: error?.message, status: false });
   }
 };
+const DeleteRecentChat = async (req, res) => {
+  try {
+    let { id1, id2 } = req.params;
 
+    if (!id1 || !id2) {
+      return res
+        .status(400)
+        .json({ message: "Both participant IDs are required.", status: false });
+    }
+
+    // Find and delete the conversation involving both participants
+    let result = await Conversation.findOneAndDelete({
+      participants: { $all: [id1, id2] },
+    });
+
+    if (result) {
+      return res
+        .status(200)
+        .json({ message: "Conversation deleted successfully.", status: true });
+    } else {
+      return res
+        .status(404)
+        .json({ message: "Conversation not found.", status: false });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error?.message, status: false });
+  }
+};
 const GetConversations = async (req, res) => {
   try {
     let auth = req.user;
@@ -231,20 +282,24 @@ const GetConversations = async (req, res) => {
 
 const sendProfileViewRequest = (io) => async (req, res) => {
   try {
-    console.log('Request Body:', req.body);
-    console.log('Request Params:', req.params);
+    console.log("Request Body:", req.body);
+    console.log("Request Params:", req.params);
 
     const { targetUserId } = req.params;
     const requestingUserId = req.body.userid;
 
     if (!targetUserId || !requestingUserId) {
-      return res.status(400).json({ message: "Missing required parameters", status: false });
+      return res
+        .status(400)
+        .json({ message: "Missing required parameters", status: false });
     }
 
     // Find the target user
     const targetUser = await User.findById(targetUserId);
     if (!targetUser) {
-      return res.status(404).json({ message: "Target user not found", status: false });
+      return res
+        .status(404)
+        .json({ message: "Target user not found", status: false });
     }
 
     // Add requestingUserId to profileViewRequests array if not already present
@@ -262,22 +317,24 @@ const sendProfileViewRequest = (io) => async (req, res) => {
       });
     }
 
-    return res.status(200).json({ message: "Profile view request sent", status: true });
+    return res
+      .status(200)
+      .json({ message: "Profile view request sent", status: true });
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error("Error:", error.message);
     return res.status(500).json({ message: error.message, status: false });
   }
 };
 
-
-
 const acceptProfileViewRequest = (io) => async (req, res) => {
   try {
     const { targetUserId } = req.params;
-    const  requesterId  = req.body.userid; 
-    console.log(requesterId);// ID of the user who requested to view the profile
+    const requesterId = req.body.userid;
+    console.log(requesterId); // ID of the user who requested to view the profile
     if (!targetUserId || !requesterId) {
-      return res.status(400).json({ message: "Missing required parameters", status: false });
+      return res
+        .status(400)
+        .json({ message: "Missing required parameters", status: false });
     }
     // Find the target user
     const targetUser = await User.findById(targetUserId);
@@ -335,4 +392,6 @@ module.exports = {
   blockOrUnblockUser,
   sendProfileViewRequest,
   acceptProfileViewRequest,
+  DeleteRecentChat,
+  getProfileByUid,
 };
