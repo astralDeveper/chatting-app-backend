@@ -398,9 +398,29 @@ const grantProfileView = async (req, res) => {
     const { userId, requesterId } = req.body;
     const user = await User.findById(userId);
     if (user.profileViewRequests.includes(requesterId)) {
-      user.profileVisible = true;
+      user.isprofileshown.push(requesterId);
+      user.profileViewRequests = user.profileViewRequests.filter(id => id.toString() !== requesterId);
       await user.save();
       res.status(200).json({ message: 'Profile view granted' });
+    } else {
+      res.status(400).json({ message: 'No such request found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const denyProfileView = async (req, res) => {
+  try {
+    const { userId, requesterId } = req.body;
+    console.log(userId);
+    const user = await User.findById(userId);
+    console.log(user);
+    
+    if (user.profileViewRequests.includes(requesterId)) {
+      user.profileViewRequests = user.profileViewRequests.filter(id => id.toString() !== requesterId);
+      await user.save();
+      res.status(200).json({ message: 'Profile view request denied' });
     } else {
       res.status(400).json({ message: 'No such request found' });
     }
@@ -423,5 +443,6 @@ module.exports = {
   DeleteRecentChat,
   getProfileByUid,
   requestProfileView,
-  grantProfileView
+  grantProfileView,
+  denyProfileView
 };
