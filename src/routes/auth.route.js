@@ -1,6 +1,5 @@
 const { Router } = require("express");
-const { Login, SignUp, CreateProfile, AddInterests, UpdateProfile, GetProfile, GetConversation, GetConversations, blockOrUnblockUser, requestProfileVisibility, sendProfileViewRequest, acceptProfileViewRequest, DeleteRecentChat, GetProfileByID, getProfileByUid, getUserProfiles, requestProfileView, grantProfileView, denyProfileView } = require("../controllers/auth.controller.js");
-const { Login, SignUp, CreateProfile, AddInterests, UpdateProfile, GetProfile, GetConversation, GetConversations, blockOrUnblockUser, requestProfileVisibility, sendProfileViewRequest, acceptProfileViewRequest, DeleteRecentChat, GetProfileByID, getProfileByUid, getUserProfiles, requestProfileView, grantProfileView, otherProfile } = require("../controllers/auth.controller.js");
+const { Login, SignUp, CreateProfile, AddInterests, UpdateProfile, GetProfile, GetConversation, GetConversations, blockOrUnblockUser, requestProfileVisibility, sendProfileViewRequest, acceptProfileViewRequest, DeleteRecentChat, GetProfileByID, getProfileByUid, getUserProfiles, requestProfileView, grantProfileView, denyProfileView, otherProfile } = require("../controllers/auth.controller.js");
 const { verifyToken } = require("../utlis/auth.js");
 const { ProfileImageUploader } = require("../utlis/fileUploder.js");
 const io = require('../socket/index.js'); // Import your Socket.IO instance

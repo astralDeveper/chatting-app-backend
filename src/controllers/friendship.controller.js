@@ -5,7 +5,7 @@ const getSuggestions = async (req, res) => {
 
     let user = req.user;
 
-    let users = await User.find({ _id: { $ne: user._id } }).select(['name', 'displayName', '_id', 'image', 'realName', 'gender', 'interests']);
+    let users = await User.find({ _id: { $ne: user._id } }).select(['name', 'displayName', '_id', 'image', 'realName', 'gender', 'interests',"type"]);
 
     const suggestions = users.map(otherUser => {
       const commonInterests = user.interests.filter(interest => otherUser.interests.includes(interest));
