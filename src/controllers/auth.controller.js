@@ -267,7 +267,7 @@ const GetConversations = async (req, res) => {
 
     let conversations = await Conversation.find({
       participants: { $all: [auth?._id] },
-    }).populate({ path: "participants", select: " name _id image" });
+    }).populate({ path: "participants", select: " name _id image displayname" });
     return res.status(200).json({ conversations, status: false });
   } catch (error) {
     return res.status(500).json({ message: error?.message, status: false });
