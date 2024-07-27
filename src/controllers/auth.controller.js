@@ -265,14 +265,86 @@ const GetConversations = async (req, res) => {
   try {
     let auth = req.user;
 
+    // Check if the user has an active conversation
+    if (auth.activeConversation) {
+      return res.status(403).json({ message: "You are currently in an active conversation", status: false });
+    }
+
     let conversations = await Conversation.find({
-      participants: { $all: [auth?._id] },
-    }).populate({ path: "participants", select: " name _id image displayName isprofileshown realName" });
-    return res.status(200).json({ conversations, status: false });
+      participants: { $all: [auth._id] },
+    }).populate({ path: "participants", select: "name _id image displayName isprofileshown realName" });
+
+    return res.status(200).json({ conversations, status: true });
   } catch (error) {
-    return res.status(500).json({ message: error?.message, status: false });
+    return res.status(500).json({ message: error.message, status: false });
   }
 };
+
+const checkActiveConversation = async (req, res, next) => {
+  try {
+    let auth = req.user;
+
+    if (auth.activeConversation) {
+      return res.status(403).json({ message: "You are currently in an active conversation", status: false });
+    }
+    
+    next();
+  } catch (error) {
+    return res.status(500).json({ message: error.message, status: false });
+  }
+};
+
+const EndConversation = async (req, res) => {
+  try {
+    let auth = req.user;
+    let { conversationId } = req.body;
+
+    // Find the conversation and ensure the user is a participant
+    let conversation = await Conversation.findById(conversationId);
+
+    if (!conversation.participants.includes(auth._id)) {
+      return res.status(403).json({ message: "You are not a participant in this conversation", status: false });
+    }
+
+    // Clear the active conversation field for all participants
+    await User.updateMany(
+      { _id: { $in: conversation.participants } },
+      { $unset: { activeConversation: "" } }
+    );
+
+    return res.status(200).json({ message: "Conversation ended", status: true });
+  } catch (error) {
+    return res.status(500).json({ message: error.message, status: false });
+  }
+};
+  
+const StartConversation = async (req, res) => {
+  try {
+    let auth = req.user;
+    let { participantId } = req.body;
+
+    // Check if the user has an active conversation
+    if (auth.activeConversation) {
+      return res.status(403).json({ message: "You are currently in an active conversation", status: false });
+    }
+
+    // Create a new conversation
+    let conversation = new Conversation({
+      participants: [auth._id, participantId]
+    });
+
+    await conversation.save();
+
+    // Update user's active conversation
+    auth.activeConversation = conversation._id;
+    await auth.save();
+
+    return res.status(201).json({ conversation, status: true });
+  } catch (error) {
+    return res.status(500).json({ message: error.message, status: false });
+  }
+};
+
 
 const sendProfileViewRequest = (io) => async (req, res) => {
   try {
@@ -457,5 +529,8 @@ module.exports = {
   grantProfileView,
   otherProfile,
   grantProfileView,
-  denyProfileView
+  denyProfileView,
+  EndConversation,
+  checkActiveConversation,
+  StartConversation
 };
