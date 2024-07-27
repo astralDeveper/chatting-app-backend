@@ -407,53 +407,39 @@ const requestProfileView = async (req, res) => {
 
 const acceptProfileViewRequest = async (req, res) => {
   try {
-    const {  requesterId, targetUserId } = req.body;
-    console.log("first", requesterId, targetUserId)
+    const { accepterID, targetUserId } = req.body;
 
-    if (!targetUserId || !requesterId) {
+    if (!targetUserId || !accepterID) {
       return res
         .status(400)
         .json({ message: "Missing required parameters", status: false });
     };
 
-    const myUser = await User.findById(requesterId);
+    const myUser = await User.findById(accepterID);
     if (!myUser) {
       return res
         .status(404)
         .json({ message: "Requested user is not found", status: false });
     };
 
-    // Check if the requesterId is in the profileViewRequests array
+    // Check if the accepterID is in the profileViewRequests array
     if (!myUser.profileViewRequests.includes(targetUserId)) {
       return res
         .status(400)
         .json({ message: "Request not found", status: false });
     };
 
-    // Add requesterId to isprofileshown array
+    // Add accepterID to isprofileshown array
     if (!myUser.isprofileshown.includes(targetUserId)) {
       myUser.isprofileshown.push(targetUserId);
     };
 
-    // Remove requesterId from profileViewRequests array
+    // Remove accepterID from profileViewRequests array
     myUser.profileViewRequests = myUser.profileViewRequests.filter(
       (id) => id.toString() !== targetUserId
     );
 
     await myUser.save();
-
-    const targetUser = await User.findById(targetUserId);
-
-    if (!targetUser.isprofileshown.includes(requesterId)) {
-      targetUser.isprofileshown.push(requesterId);
-    };
-
-    // Remove requesterId from profileViewRequests array
-    targetUser.profileViewRequests = targetUser.profileViewRequests.filter(
-      (id) => id.toString() !== requesterId
-    );
-
-    await targetUser.save();
 
     return res
       .status(200)
