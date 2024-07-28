@@ -233,6 +233,7 @@ const GetConversation = async (req, res) => {
     return res.status(500).json({ message: error?.message, status: false });
   }
 };
+
 const DeleteRecentChat = async (req, res) => {
   try {
     let { id1, id2 } = req.params;
@@ -266,9 +267,9 @@ const GetConversations = async (req, res) => {
     let auth = req.user;
 
     // Check if the user has an active conversation
-    if (auth.activeConversation) {
-      return res.status(403).json({ message: "You are currently in an active conversation", status: false });
-    }
+    // if (auth.activeConversation) {
+    //   return res.status(403).json({ message: "You are currently in an active conversation", status: false });
+    // }
 
     let conversations = await Conversation.find({
       participants: { $all: [auth._id] },
@@ -287,7 +288,7 @@ const checkActiveConversation = async (req, res, next) => {
     if (auth.activeConversation) {
       return res.status(403).json({ message: "You are currently in an active conversation", status: false });
     }
-    
+
     next();
   } catch (error) {
     return res.status(500).json({ message: error.message, status: false });
@@ -298,10 +299,10 @@ const EndConversation = async (req, res) => {
   try {
     let auth = req.user;
     let { conversationId } = req.body;
-
+    console.log('req.body', req.body)
     // Find the conversation and ensure the user is a participant
     let conversation = await Conversation.findById(conversationId);
-
+    console.log('conversation', conversation)
     if (!conversation.participants.includes(auth._id)) {
       return res.status(403).json({ message: "You are not a participant in this conversation", status: false });
     }
@@ -317,7 +318,7 @@ const EndConversation = async (req, res) => {
     return res.status(500).json({ message: error.message, status: false });
   }
 };
-  
+
 const StartConversation = async (req, res) => {
   try {
     let auth = req.user;
@@ -403,6 +404,30 @@ const requestProfileView = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+const ConversationStart = async (req, res) => {
+  try {
+    const { userId, targetId } = req.body;
+
+    // Find the user and target user by their IDs
+    const user = await User.findById(userId);
+
+    // Ensure both users exist before proceeding
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Add the targetId to the user's active conversations
+    user.activeConversation = targetId;
+
+    // Save the updated user document
+    await user.save();
+
+    res.status(200).json({ user, message: 'Profile view requested' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 
 const acceptProfileViewRequest = async (req, res) => {
@@ -485,11 +510,11 @@ const denyProfileView = async (req, res) => {
     console.log(userId);
     const user = await User.findById(userId);
     console.log(user);
-    
+
     if (user.profileViewRequests.includes(requesterId)) {
       user.profileViewRequests = user.profileViewRequests.filter(id => id.toString() !== requesterId);
       await user.save();
-      res.status(200).json({ message: 'Profile view request denied' });
+      res.status(200).json({ user, message: 'Profile view request denied' });
     } else {
       res.status(400).json({ message: 'No such request found' });
     }
@@ -509,6 +534,7 @@ module.exports = {
   blockOrUnblockUser,
   sendProfileViewRequest,
   acceptProfileViewRequest,
+  ConversationStart,
   DeleteRecentChat,
   getProfileByUid,
   requestProfileView,

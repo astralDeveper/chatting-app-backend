@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
       path: { type: String },
       filename: { type: String },
       mimetype: { type: String },
-      
+
     },
     address: {
       type: String,
@@ -61,7 +61,8 @@ const userSchema = new mongoose.Schema(
     profileVisible: { type: Boolean, default: false },
     profileViewRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     chatHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
-    activeConversation: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' }
+    // activeConversation: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' }
+    activeConversation: { type: String, default: false }
   },
   {
     timestamps: true,
