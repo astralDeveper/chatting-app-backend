@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Login, SignUp, CreateProfile, AddInterests, UpdateProfile, GetProfile, GetConversation, GetConversations, blockOrUnblockUser, ConversationStart, sendProfileViewRequest, acceptProfileViewRequest, DeleteRecentChat, GetProfileByID, getProfileByUid, getUserProfiles, requestProfileView, grantProfileView, denyProfileView, otherProfile, StartConversation, EndConversation, checkActiveConversation } = require("../controllers/auth.controller.js");
+const { Login, SignUp, CreateProfile, AddInterests, getInterests, UpdateProfile, GetProfile, GetConversation, GetConversations, blockOrUnblockUser, ConversationStart, sendProfileViewRequest, acceptProfileViewRequest, DeleteRecentChat, GetProfileByID, getProfileByUid, getUserProfiles, requestProfileView, grantProfileView, denyProfileView, otherProfile, StartConversation, EndConversation, checkActiveConversation } = require("../controllers/auth.controller.js");
 const { verifyToken } = require("../utlis/auth.js");
 const { ProfileImageUploader } = require("../utlis/fileUploder.js");
 const io = require('../socket/index.js'); // Import your Socket.IO instance
@@ -9,6 +9,7 @@ route.post("/login", Login);
 route.post("/sign-up", SignUp);
 route.post("/create-profile", verifyToken, ProfileImageUploader, CreateProfile);
 route.put("/add-interests", verifyToken, AddInterests);
+route.put("/get-interests", getInterests);
 route.put("/update-profile", verifyToken, ProfileImageUploader, UpdateProfile);
 route.get("/get-profile", verifyToken, GetProfile);
 route.post("/get-Profileforrequest", getProfileByUid);

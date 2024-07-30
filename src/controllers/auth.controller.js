@@ -122,7 +122,22 @@ const AddInterests = async (req, res) => {
       { new: true }
     );
 
-    return res.status(200).json({ message: "Interest Added Successfully" });
+    return res.status(200).json({ interests, genderInterest, message: "Interest Added Successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error?.message, status: false });
+  }
+};
+const getInterests = async (req, res) => {
+  try {
+    const { id } = req.body; // Get user ID from the URL parameters
+    console.log(id)
+    const user = await User.findById(id).select('interests genderInterest'); // Fetch only interests and genderInterest fields
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found', status: false });
+    }
+
+    return res.status(200).json({ interests: user.interests, genderInterest: user.genderInterest });
   } catch (error) {
     return res.status(500).json({ message: error?.message, status: false });
   }
@@ -544,5 +559,6 @@ module.exports = {
   denyProfileView,
   EndConversation,
   checkActiveConversation,
-  StartConversation
+  StartConversation,
+  getInterests
 };
