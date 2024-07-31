@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Login, SignUp, CreateProfile, AddInterests, getInterests, UpdateProfile, GetProfile, GetConversation, GetConversations, blockOrUnblockUser, ConversationStart, sendProfileViewRequest, acceptProfileViewRequest, DeleteRecentChat, GetProfileByID, getProfileByUid, getUserProfiles, requestProfileView, grantProfileView, denyProfileView, otherProfile, StartConversation, EndConversation, checkActiveConversation } = require("../controllers/auth.controller.js");
+const { Login, SignUp, CreateProfile, AddInterests, getInterests, UpdateProfile, GetProfile, GetConversation, GetConversations, blockOrUnblockUser, ConversationStart, sendProfileViewRequest, acceptProfileViewRequest, DeleteRecentChat, GetProfileByID, getProfileByUid, getUserProfiles, requestProfileView, grantProfileView, denyProfileView, otherProfile, StartConversation, EndConversation, checkActiveConversation, forgotPassword } = require("../controllers/auth.controller.js");
 const { verifyToken } = require("../utlis/auth.js");
 const { ProfileImageUploader } = require("../utlis/fileUploder.js");
 const io = require('../socket/index.js'); // Import your Socket.IO instance
@@ -23,7 +23,7 @@ route.put('/block/:userId', verifyToken, blockOrUnblockUser);
 // route.post('/profile-view-request/:targetUserId', sendProfileViewRequest(io));
 
 route.post("/other-profile", otherProfile);
-
+route.post('/forgotPassword',forgotPassword)
 route.post('/request-profile-view', requestProfileView);
 route.post('/grant-profile-view', grantProfileView);
 route.post('/deny-profile-view', denyProfileView);

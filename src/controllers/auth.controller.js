@@ -537,6 +537,29 @@ const denyProfileView = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+const  forgotPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body; // Expecting a new password from the request
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User does not exist" });
+    }
+
+    // Generate a new hashed password
+    const hashedPassword = await bcrypt.hash(password || " ", 10); // newPassword is the user's new desired password
+    user.password = hashedPassword; // Update the user's password
+
+    await user.save(); // Save the updated user document to the database
+
+    // Inform the user of success without logging them in or sending a token
+    res.json({ message: "Password reset successfully. Please log in with your new password." , succes:true});
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 module.exports = {
   Login,
   SignUp,
@@ -560,5 +583,6 @@ module.exports = {
   EndConversation,
   checkActiveConversation,
   StartConversation,
-  getInterests
+  getInterests,
+  forgotPassword
 };
